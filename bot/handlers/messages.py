@@ -2,17 +2,27 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from bot.keyboards.main_menu import get_main_menu
+from bot.services.products import get_products
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     user = update.effective_user
 
-    if text == "📋 Меню":
+    if text == "🛍 Каталог":
+        products = get_products()
+
+        message = "🛍 Каталог товаров:\n\n"
+
+        for product in products:
+            message += (
+                f"{product['id']}. {product['name']}\n"
+                f"Цена: ${product['price']}\n"
+                f"{product['description']}\n\n"
+            )
+
         await update.message.reply_text(
-            "Главное меню:\n\n"
-            "👤 Профиль — информация о тебе\n"
-            "ℹ️ Помощь — список команд",
+            message,
             reply_markup=get_main_menu()
         )
 
@@ -21,7 +31,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Доступные команды:\n"
             "/start — запустить бота\n"
             "/help — помощь\n\n"
-            "Также можешь пользоваться кнопками меню.",
+            "Кнопка 🛍 Каталог покажет товары.",
             reply_markup=get_main_menu()
         )
 
