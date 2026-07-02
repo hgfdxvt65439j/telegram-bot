@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from bot.keyboards.main_menu import get_main_menu
-from bot.services.products import get_products
+from bot.services.products import get_categories, get_products_by_category
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -10,30 +10,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
     if text == "🛍 Каталог":
-        products = get_products()
+        categories = get_categories()
 
-        message = "🛍 Каталог товаров:\n\n"
+        message = "🛍 Выбери категорию:\n\n"
+        for category in categories.values():
+            message += f"{category['title']}\n"
 
-        for product in products:
-            message += (
-                f"{product['id']}. {product['name']}\n"
-                f"Цена: ${product['price']}\n"
-                f"{product['description']}\n\n"
-            )
+        await update.message.reply_text(message, reply_markup=get_main_menu())
 
-        await update.message.reply_text(
-            message,
-            reply_markup=get_main_menu()
-        )
+    elif text == "📱 Смартфоны":
+        await send_category(update, "phones")
 
-    elif text == "ℹ️ Помощь":
-        await update.message.reply_text(
-            "Доступные команды:\n"
-            "/start — запустить бота\n"
-            "/help — помощь\n\n"
-            "Кнопка 🛍 Каталог покажет товары.",
-            reply_markup=get_main_menu()
-        )
+    elif text == "🎧 Наушники":
+        await send_category(update, "headphones")
 
     elif text == "👤 Профиль":
         await update.message.reply_text(
@@ -44,9 +33,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=get_main_menu()
         )
 
+    elif text == "ℹ️ Помощь":
+        await update.message.reply_text(
+            "Доступные команды:\n"
+            "/start — запустить бота\n"
+            "/help — помощь",
+            reply_markup=get_main_menu()
+        )
+
     else:
         await update.message.reply_text(
             "Я пока не понимаю это сообщение.\n"
             "Используй кнопки меню 👇",
             reply_markup=get_main_menu()
         )
+
+
+async def send_category(update: Update, category_key: str):
+    products = get_products_by_category(category_key)
+
+    if not products:
+        await update.message.reply_text("В этой категории пока нет товаров.")
+        return
+
+    message = "Товары:\n\n"
+    for product in products:
+        message += (
+            f"{product['id']}. {product['name']}\n"
+            f"Цена: ${product['price']}\n"
+            f"{product['description']}\n\n"
+        )
+
+    await update.message.reply_text(message, reply_markup=get_main_menu())
