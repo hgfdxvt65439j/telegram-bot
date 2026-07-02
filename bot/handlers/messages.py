@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 
 from bot.keyboards.main_menu import get_main_menu
 from bot.services.products import get_categories, get_products_by_category
+from bot.keyboards.product_buttons import get_product_buttons
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -56,12 +57,9 @@ async def send_category(update: Update, category_key: str):
         await update.message.reply_text("В этой категории пока нет товаров.")
         return
 
-    message = "Товары:\n\n"
     for product in products:
-        message += (
-            f"{product['id']}. {product['name']}\n"
-            f"Цена: ${product['price']}\n"
-            f"{product['description']}\n\n"
+        await update.message.reply_text(
+            f"{product['name']}\n"
+            f"Цена: ${product['price']}",
+            reply_markup=get_product_buttons(product["id"])
         )
-
-    await update.message.reply_text(message, reply_markup=get_main_menu())

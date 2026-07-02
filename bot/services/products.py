@@ -36,3 +36,10 @@ def get_categories():
 
 def get_products_by_category(category_key):
     return CATEGORIES.get(category_key, {}).get("products", [])
+
+def get_product_by_id(product_id: int):
+    for category in CATEGORIES.values():
+        for product in category["products"]:
+            if product["id"] == product_id:
+                return product
+    return None
